@@ -1,5 +1,7 @@
 # quad-file-download
 
+archived because i merged this project with [quad-files](https://github.com/ingobeans/quad-files)
+
 a way to download files cross platform. works on the web which is pretty cool.
 
 remember to add the js files needed.
