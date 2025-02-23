@@ -15,18 +15,31 @@ extern "C" {
     fn quad_file_download(path: JsObjectWeak, bytes: JsObjectWeak);
 }
 
-pub fn download(path: &str, bytes: &[u8]) -> Result<(), std::io::Error> {
+/// Open file dialog to save the bytes to a file.
+///
+/// `filename` is requested file name
+///
+/// `bytes` is file data
+///
+/// if `filter` is Some, only show files of the same type in the file picker. The &str contained will be the name of the filter
+pub fn download(filename: &str, bytes: &[u8], filter: Option<&str>) -> Result<(), std::io::Error> {
     #[cfg(target_arch = "wasm32")]
     {
         unsafe {
             let object = JsObject::buffer(bytes);
-            quad_file_download(JsObject::string(path).weak(), object.weak());
+            quad_file_download(JsObject::string(filename).weak(), object.weak());
             Ok(())
         }
     }
     #[cfg(not(target_arch = "wasm32"))]
     {
-        let dialog = rfd::FileDialog::new().set_file_name(path);
+        let extension = filename.split(".").last();
+        let mut dialog = rfd::FileDialog::new().set_file_name(filename);
+        if let Some(extension) = extension {
+            if let Some(filter) = filter {
+                dialog = dialog.add_filter(filter, &vec![extension]);
+            }
+        }
         let path = dialog.save_file();
         if let Some(path) = path {
             std::fs::write(path, bytes)
